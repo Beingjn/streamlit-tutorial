@@ -10,7 +10,7 @@
 import streamlit as st
 from datetime import datetime
 
-# 1) Page config & intro
+# Page config
 st.set_page_config(page_title="Key Concepts")
 
 st.title("Key Concepts")
@@ -159,6 +159,7 @@ st.code(
     """
 )
 
+# Fragment
 st.markdown("### Fragments (isolate updates to a block)")
 st.markdown("""
 **Fragments** let you structure a page into independently updatable sections. When inputs inside a fragment change,
