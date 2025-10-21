@@ -34,7 +34,7 @@ regions = np.random.choice(["East", "West", "North", "South"], size=len(dates))
 sales = np.random.randint(50, 200, size=len(dates))
 df = pd.DataFrame({"date": dates, "region": regions, "sales": sales})
 
-# 1) Titles, Headings & Body Text
+# Titles, Headings & Body Text
 st.subheader("1) Titles, Headings & Body Text")
 
 # Title / Header hierarchy
@@ -54,13 +54,14 @@ st.success("`st.success()`")
 st.warning("`st.warning()`")
 st.error("`st.error()`")
 
+# Links
 st.write("Links:")
 st.markdown("[markdown links](https://docs.streamlit.io)")
 st.code('st.markdown("[markdown links](https://docs.streamlit.io)")')
 st.link_button("button links", "https://docs.streamlit.io")
 st.code('st.link_button("button links", "https://docs.streamlit.io")')
 
-
+# Divider
 st.divider()
 st.write("Divider like this:")
 st.divider()
@@ -90,13 +91,14 @@ st.divider()
 
 # Sidebar variants
 st.sidebar.header("Sidebar Heading")
+st.sidebar.code('st.sidebar.header("Sidebar Heading")', language="python")
 st.sidebar.subheader("Sidebar Subheading")
+st.sidebar.code('st.sidebar.subheader("Sidebar Subheading")', language="python")
 st.sidebar.caption("Sidebar helper text")
-st.sidebar.code('st.sidebar.header/subheader/...")', language="python")
+st.sidebar.code('st.sidebar.caption("Sidebar helper text")', language="python")
 
 
-
-# 2) metrics 
+# metrics 
 st.subheader("2) Metrics")
 st.write("Use columns and `st.metric` for quick KPI tiles.")
 
@@ -143,7 +145,7 @@ st.code(
 
 st.divider()
 
-# 3) Columns
+# Columns
 st.subheader("3) Columns")
 st.write("Place content side-by-side. Control relative widths and nest as needed.")
 
@@ -194,7 +196,7 @@ with outer2:
 )
 st.divider()
 
-# 4) Tabs
+# Tabs
 st.subheader("4) Tabs")
 st.write("Tabs let you present alternate views without changing pages.")
 tab1, tab2, tab3 = st.tabs(["Trend", "Breakdown", "Notes"])
@@ -226,7 +228,7 @@ st.code(
 )
 
 
-# 5) Expanders (progressive disclosure of details)
+# Expanders
 st.subheader("5) Expanders")
 st.write("Hide advanced or optional details until the user opens them.")
 
@@ -241,7 +243,7 @@ st.code(
 )
 st.divider()
 
-# 6) Containers & placeholders (grouping + dynamic areas)
+# Containers & placeholders
 st.subheader("6) Containers & placeholders")
 st.write("`st.container()` groups related UI. `st.empty()` reserves a spot you can fill later.")
 
@@ -283,7 +285,7 @@ st.code(
 
 st.divider()
 
-# 7) Sidebar vs Main pattern
+# Sidebar vs Main pattern
 st.subheader("7) Sidebar vs Main")
 st.write("A common dashboard pattern: inputs in the sidebar, outputs in the main area.")
 
