@@ -1,1 +1,1 @@
-Lab 1 — Getting Started & Layout Basics
+Streamlit Tutorials for DSBI
