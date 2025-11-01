@@ -1,7 +1,6 @@
 # How to start this app
-#
 # Start the app from the project folder(in terminal):
-#   streamlit run key_concepts.py
+#   streamlit run app.py
 # Your browser should open to:
 #   http://localhost:8501
 #   (If it doesn’t, copy that URL into your browser.)

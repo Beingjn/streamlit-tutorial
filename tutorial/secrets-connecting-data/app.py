@@ -1,3 +1,11 @@
+# How to start this app
+# Start the app from the project folder(in terminal):
+#   streamlit run app.py
+# Your browser should open to:
+#   http://localhost:8501
+#   (If it doesn’t, copy that URL into your browser.)
+# Stop the app: press Ctrl+C in the terminal.
+
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
@@ -16,7 +24,7 @@ Examples connecting to other data sources can be found here: https://docs.stream
 st.sidebar.header("Setup checklist")
 st.sidebar.markdown(
     """
-    1. Create a **public** Google Sheet (Anyone with the link).  
+    1. Create a public Google Sheet (Anyone with the link).  
     2. Copy the share URL.  
     3. Put it in `.streamlit/secrets.toml`.  
     4. Run the demo below.
@@ -33,8 +41,8 @@ st.sidebar.write(
 st.markdown(
     """
     ### What are Secrets?
-    - **Secrets** are key–value settings your app reads at runtime via `st.secrets`.
-    - They live **outside your code** (local: `.streamlit/secrets.toml`; Cloud: *Settings → Advanced → Secrets*).
+    - Secrets are key–value settings your app reads at runtime via `st.secrets`.
+    - They live outside your code (local: `.streamlit/secrets.toml`; Cloud: *Settings → Advanced → Secrets*).
     - Same code works locally and on Cloud; no extra imports or branching.
 
     **Examples of things to keep in secrets**
@@ -119,7 +127,7 @@ st.divider()
 st.subheader("Demo: read a public Google Sheet via secrets")
 st.markdown(
     """
-    Edit `.streamlit/secrets.toml` to add your Google sheet link.\n
+    Edit `.streamlit/secrets.toml` to add your own Google sheet link.\n
     This example reads the first worksheet by default; optionally specify a worksheet name.
     """
 )
