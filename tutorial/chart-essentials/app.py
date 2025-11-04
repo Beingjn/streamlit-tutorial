@@ -37,7 +37,7 @@ df["ppsf"] = np.where(df["size"] > 0, df["sale_price"] / df["size"], np.nan)
 
 # Helpers
 df_time = df.dropna(subset=["date"])
-TOP_N_CITIES = 12
+TOP_N_CITIES = 6
 top_cities = df["city"].value_counts().nlargest(TOP_N_CITIES).index
 df_top_cities = df[df["city"].isin(top_cities)]
 df_top_cities_time = df_top_cities.dropna(subset=["date"])
@@ -78,11 +78,6 @@ with tab_native:
 # Basic Altair syntax 
 with tab_altair:
     st.subheader("Altair: Syntax & Core Ideas")
-    st.caption("Focus on how the syntax works. Additional chart types live in the Altair Reference tab.")
-    st.markdown("""
-
-""")
-
     st.markdown(
         """
 Altair is a declarative statistical visualization library for Python built on the Vega-Lite grammar of graphics. 
@@ -147,28 +142,32 @@ st.altair_chart(chart, use_container_width=True)
    Renders the chart in Streamlit and lets it expand to the container’s width.
 """
     )
-    st.info("""
-    Field types include: `:Q` quantitative (numbers, continuous) · `:T` temporal (dates/times)· `:N` nominal (unordered categories)· `:O` ordinal (ordered categories)
-    · `G` geojson (geographic shape)
-    """
+    st.info(
+        """Field types include: `:Q` quantitative (numbers, continuous) · `:T` temporal (dates/times)· `:N` nominal (unordered categories)· `:O` ordinal (ordered categories)
+    · `G` geojson (geographic shape)"""
     )
 
 # Chart Reference
 with tab_reference:
-    st.markdown("""
-**Dataset: Greater Seattle House Flips**
+    st.markdown(
+        """Altair documentation: https://altair-viz.github.io/user_guide/data.html  
+Example gallery: https://altair-viz.github.io/gallery/index.html
 
-This example dataset captures a real estate company's house-flipping projects across Greater Seattle, with purchase/sale dates and prices, property details (beds/baths, sqft, city, coordinates), plus derived metrics like ROI and $/sqft.
-""")
+**Example: Greater Seattle House Flips**
+
+This dataset captures a real estate company's house-flipping projects across Greater Seattle, with purchase/sale dates and prices,
+property details (beds/baths, sqft, city, coordinates), plus derived metrics like ROI and $/sqft.
+
+Here are some example visualizations built with Altair."""
+    )
+
 
     st.caption(f"{len(df):,} flips from {df['date'].min():%Y-%m-%d} to {df['date'].max():%Y-%m-%d}")
 
     st.dataframe(df.head(8), use_container_width=True)
 
-    st.markdown("Altair documentation: https://altair-viz.github.io/user_guide/data.html")
-
     # 1) Line: flips per month
-    st.subheader("Flips per Month")
+    st.subheader("Line: Flips per Month")
     line_count = (
         alt.Chart(df_time)
         .mark_line(point=True)
@@ -186,67 +185,55 @@ This example dataset captures a real estate company's house-flipping projects ac
         tooltip=[alt.Tooltip("yearmonth(date):T", title="Month"), alt.Tooltip("count()", title="# Flips")]
     ).properties(height=300)''', language="python")
 
-    # 2) Line: median sale price over time
-    st.subheader("Median Sale Price Over Time")
-    line_med_price = (
-        alt.Chart(df_time)
+    # 2) Line: median sale price over time by city
+    st.subheader(f'Line: Median sale price over time by city')
+    multi_line = (
+        alt.Chart(df_top_cities_time)
         .mark_line(point=True)
         .encode(
             x="yearmonth(date):T",
             y=alt.Y("median(sale_price):Q", title="Median Sale Price (USD)"),
-            tooltip=[alt.Tooltip("yearmonth(date):T", title="Month"), alt.Tooltip("median(sale_price):Q", title="Median Price")]
+            color=alt.Color("city:N", title="City"),
+            tooltip=[
+                alt.Tooltip("yearmonth(date):T", title="Month"),
+                alt.Tooltip("city:N", title="City"),
+                alt.Tooltip("median(sale_price):Q", title="Median Price")
+            ]
         )
         .properties(height=300)
     )
-    st.altair_chart(line_med_price, use_container_width=True)
-    st.code('''alt.Chart(df_time).mark_line(point=True).encode(
-        x="yearmonth(date):T",
-        y=alt.Y("median(sale_price):Q", title="Median Sale Price (USD)"),
-        tooltip=[alt.Tooltip("yearmonth(date):T", title="Month"), alt.Tooltip("median(sale_price):Q", title="Median Price")]
-    ).properties(height=300)''', language="python")
-
-    # 3) Line: median ROI over time
-    st.subheader("Median ROI Over Time")
-    df_time_roi = df_time.dropna(subset=["roi_pct"])
-    line_med_roi = (
-        alt.Chart(df_time_roi)
-        .mark_line(point=True)
-        .encode(
+    st.altair_chart(multi_line, use_container_width=True)
+    st.code('''multi_line = (alt.Chart(df_top_cities_time).mark_line(point=True).encode(
             x="yearmonth(date):T",
-            y=alt.Y("median(roi_pct):Q", title="Median ROI (fraction)"),
-            tooltip=[alt.Tooltip("yearmonth(date):T", title="Month"), alt.Tooltip("median(roi_pct):Q", title="Median ROI")]
-        )
-        .properties(height=300)
-    )
-    st.altair_chart(line_med_roi, use_container_width=True)
-    st.code('''alt.Chart(df_time.dropna(subset=["roi_pct"])).mark_line(point=True).encode(
-        x="yearmonth(date):T",
-        y=alt.Y("median(roi_pct):Q", title="Median ROI (fraction)"),
-        tooltip=[alt.Tooltip("yearmonth(date):T", title="Month"), alt.Tooltip("median(roi_pct):Q", title="Median ROI")]
-    ).properties(height=300)''', language="python")
+            y=alt.Y("median(sale_price):Q", title="Median Sale Price (USD)"),
+            color=alt.Color("city:N", title="City"),
+            tooltip=[alt.Tooltip("yearmonth(date):T", title="Month"),alt.Tooltip("city:N", title="City"),alt.Tooltip("median(sale_price):Q", title="Median Price")])
+        .properties(height=300))''', language="python")
 
-    # 4) Bar: flips by city
-    st.subheader(f"Flips by City (Top {TOP_N_CITIES})")
-    bar_city_count = (
+    # 3) Pie: share of flips by bedrooms
+    st.subheader(f'Pie: Share of flips by city')
+    pie_cities = (
         alt.Chart(df_top_cities)
-        .mark_bar()
+        .mark_arc()
         .encode(
-            x=alt.X("city:N", sort="-y", title="City"),
-            y=alt.Y("count()", title="# Flips"),
-            tooltip=[alt.Tooltip("city:N", title="City"), alt.Tooltip("count()", title="# Flips")]
+            theta='count():Q',
+            color=alt.Color('city:N', title='City'),
+            tooltip=['city:N', alt.Tooltip('count():Q', title='Flips')]
         )
-        .properties(height=300)
+        .properties(height=320, title=f'Share of flips by city')
     )
-    st.altair_chart(bar_city_count, use_container_width=True)
-    st.code(f'''top_cities = df["city"].value_counts().nlargest({TOP_N_CITIES}).index
-    alt.Chart(df[df["city"].isin(top_cities)]).mark_bar().encode(
-        x=alt.X("city:N", sort="-y", title="City"),
-        y=alt.Y("count()", title="# Flips"),
-        tooltip=[alt.Tooltip("city:N", title="City"), alt.Tooltip("count()", title="# Flips")]
-    ).properties(height=300)''', language="python")
 
-    # 5) Bar: beds popularity
-    st.subheader("Beds Popularity")
+    st.altair_chart(pie_cities, use_container_width=True)
+
+    st.code('''pie_cities = (alt.Chart(df_top_cities).mark_arc().encode(
+        theta='count():Q',
+        color=alt.Color('city:N', title='City'),
+        tooltip=['city:N', alt.Tooltip('count():Q', title='Flips')]
+    ).properties(height=320))''', language="python")
+    st.info("Use .mark_arc(innerRadius=60) for a donut chart.")
+
+    # 4) Bar: beds popularity
+    st.subheader("Bar: Beds Popularity")
     bar_beds = (
         alt.Chart(df)
         .mark_bar()
@@ -264,8 +251,8 @@ This example dataset captures a real estate company's house-flipping projects ac
         tooltip=[alt.Tooltip("bds:O", title="Bedrooms"), alt.Tooltip("count()", title="Count")]
     ).properties(height=300)''', language="python")
 
-    # 6) Bar: average sale price by city
-    st.subheader(f"Average Sale Price by City (Top {TOP_N_CITIES})")
+    # 5) Bar: average sale price by city
+    st.subheader(f"Bar: Average Sale Price by City")
     bar_avg_price_city = (
         alt.Chart(df_top_cities)
         .mark_bar()
@@ -284,8 +271,36 @@ This example dataset captures a real estate company's house-flipping projects ac
         tooltip=[alt.Tooltip("city:N", title="City"), alt.Tooltip("mean(sale_price):Q", title="Avg Price")]
     ).properties(height=300)''', language="python")
 
+    # 6) Stacked bar: monthly deal counts by city
+    st.subheader("Stacked bar: Monthly deals by city")
+    stacked = (
+        alt.Chart(df_top_cities)
+        .mark_bar()
+        .encode(
+            x=alt.X('yearmonth(date):T', title='Month'),
+            y=alt.Y('count():Q', title='Deals'),
+            color=alt.Color('city:N', title='City', legend=alt.Legend(columns=2)),
+            tooltip=[
+                alt.Tooltip('yearmonth(date):T', title='Month'),
+                alt.Tooltip('city:N', title='City'),
+                alt.Tooltip('count():Q', title='Deals')
+            ]
+        )
+        .properties(height=340)
+    )
+    st.altair_chart(stacked, use_container_width=True)
+
+    st.code('''stacked = (alt.Chart(df_top_cities).mark_bar().encode(
+            x=alt.X('yearmonth(date):T', title='Month'),
+            y=alt.Y('count():Q', title='Deals'),
+            color=alt.Color('city:N', title='City', legend=alt.Legend(columns=2)),tooltip=[
+                alt.Tooltip('yearmonth(date):T', title='Month'),
+                alt.Tooltip('city:N', title='City'),
+                alt.Tooltip('count():Q', title='Deals')]).properties(height=340))
+    st.altair_chart(stacked, use_container_width=True)''', language="python")
+
     # 7) Scatter: size vs sale price
-    st.subheader("Size vs Sale Price")
+    st.subheader("Scatter: Size vs Sale Price")
     scatter_size_price = (
         alt.Chart(df.dropna(subset=["size", "sale_price"]))
         .mark_circle(opacity=0.6)
@@ -298,13 +313,13 @@ This example dataset captures a real estate company's house-flipping projects ac
     )
     st.altair_chart(scatter_size_price, use_container_width=True)
     st.code('''alt.Chart(df.dropna(subset=["size", "sale_price"])).mark_circle(opacity=0.6).encode(
-        x=alt.X("size:Q", title="Size (sqft)"),
-        y=alt.Y("sale_price:Q", title="Sale Price (USD)"),
-        tooltip=["address:N", "city:N", "bds:Q", "bths:Q", alt.Tooltip("ppsf:Q", title="Price/Sqft")]
-    ).properties(height=320)''', language="python")
+    x=alt.X("size:Q", title="Size (sqft)"),
+    y=alt.Y("sale_price:Q", title="Sale Price (USD)"),
+    tooltip=["address:N", "city:N", "bds:Q", "bths:Q", alt.Tooltip("ppsf:Q", title="Price/Sqft")]
+).properties(height=320)''', language="python")
 
     # 8) Scatter: days on market vs discount
-    st.subheader("Days on Market vs Discount from List")
+    st.subheader("Scatter: Days on Market vs Discount from List")
     scatter_cdom_disc = (
         alt.Chart(df.dropna(subset=["CDOM", "discount_pct"]))
         .mark_circle(opacity=0.6)
@@ -323,7 +338,20 @@ This example dataset captures a real estate company's house-flipping projects ac
     ).properties(height=320)''', language="python")
 
     # 9) Histogram: sale price
-    st.subheader("Sale Price Distribution")
+    st.subheader("Histogram: Sale Price Distribution")
+    st.markdown("""In Altair, a histogram is a bar chart where you bin a numeric field on the x-axis and 
+    plot the number of rows on the y-axis. Set bin=True (or use alt.Bin(...)) for x, and use y='count()'.
+    Here are some other ways you can configure binning:""")
+    st.code(
+        '''# simple: let Vega-Lite decide
+x=alt.X('value:Q', bin=True)
+# control number of bins
+x=alt.X('value:Q', bin=alt.Bin(maxbins=30))
+# fixed-width bins of size 5 from 0 to 100
+x=alt.X('value:Q', bin=alt.Bin(step=5, extent=[0, 100]))
+# data already binned; use start/end with x/x2
+x=alt.X('bin_start:Q', bin='binned'); x2="bin_end:Q"''', language="python")
+    
     hist_price = (
         alt.Chart(df.dropna(subset=["sale_price"]))
         .mark_bar()
@@ -343,7 +371,7 @@ This example dataset captures a real estate company's house-flipping projects ac
 
 
     # 10) Histogram: ROI
-    st.subheader("ROI Distribution")
+    st.subheader("Histogram: ROI Distribution")
     hist_roi = (
         alt.Chart(df.dropna(subset=["roi_pct"]))
         .mark_bar()
@@ -362,7 +390,7 @@ This example dataset captures a real estate company's house-flipping projects ac
     ).properties(height=280)''', language="python")
 
     # 11) Box plot: sale price by city
-    st.subheader(f"Sale Price by City (Top {TOP_N_CITIES}) — Box Plot")
+    st.subheader(f"Box Plot: Sale Price by City")
 
     # Ensure df_top_cities exists
     if "df_top_cities" not in locals():
@@ -406,7 +434,7 @@ This example dataset captures a real estate company's house-flipping projects ac
     )
 
     # 12) Heatmap: beds × baths, median sale price
-    st.subheader("Beds × Baths — Median Sale Price")
+    st.subheader("Heatmap: Beds × Baths, Median Sale Price")
     heat_beds_baths = (
         alt.Chart(df.dropna(subset=["bds", "bths", "sale_price"]))
         .mark_rect()
@@ -428,76 +456,25 @@ This example dataset captures a real estate company's house-flipping projects ac
 
 
     # 13)Streamlit native Map 
-    st.subheader("Locations")
+    st.subheader("Map: Locations")
     st.markdown("""
         This map is achieved using `st.map`. Using Streamlit’s native map (based on pydeck/deck.gl) gives us a quick basemap with pan/zoom out of the box. 
-        Altair can plot points, but it doesn’t fetch map tiles, you’d have to bring your own.
+        Altair can plot points, but it doesn’t fetch map tiles.
     """)
     _geo = df.dropna(subset=["latitude", "longitude"])[["latitude", "longitude"]]
     st.map(_geo, latitude="latitude", longitude="longitude", zoom=10, use_container_width=True)
 
     st.code(
         """_geo = df.dropna(subset=["latitude", "longitude"])[["latitude", "longitude"]]
-        st.map(_geo, latitude="latitude", longitude="longitude", zoom=10, use_container_width=True)""",
+        st.map(
+            _geo, 
+            latitude="latitude", 
+            longitude="longitude", 
+            zoom=10, 
+            use_container_width=True
+            )""",
         language="python",
     )
 
-    # --- Pie chart: share of flips by bedrooms ---
-    # Assumes `df` and `alt` are available; `bds` is the bedrooms column.
-
-    base = (
-    alt.Chart(df)
-    .transform_aggregate(count='count()', groupby=['bds'])
-    .transform_joinaggregate(total='sum(count)')
-    .transform_calculate(pct='datum.count / datum.total')
-    )
-
-    pie = base.mark_arc(outerRadius=120).encode(
-        theta=alt.Theta('count:Q', stack=True),
-        color=alt.Color('bds:N', title='Bedrooms'),
-        tooltip=[
-            alt.Tooltip('bds:N', title='Bedrooms'),
-            alt.Tooltip('count:Q', title='Flips'),
-            alt.Tooltip('pct:Q', title='Share', format='.1%')
-        ]
-    ).properties(height=340, title='Share of flips by bedrooms')
-
-    label_min = 0.03  # hide labels under 3%
-
-    labels = (
-        base
-        .transform_filter(alt.datum.pct >= label_min)
-        .mark_text(radius=145, size=12)
-        .encode(
-            theta=alt.Theta('count:Q', stack=True),
-            text=alt.Text('pct:Q', format='.0%'),
-            detail='bds:N'
-        )
-    )
-
-    st.altair_chart(pie + labels, use_container_width=True)
 
 
-    # --- Stacked bar: monthly deal counts by city (Top 8) ---
-    # Assumes `df` has columns `date` (datetime) and `city`.
-
-    top_cities = df['city'].value_counts().nlargest(8).index
-    df_top = df[df['city'].isin(top_cities)]
-
-    stacked = (
-        alt.Chart(df_top)
-        .mark_bar()
-        .encode(
-            x=alt.X('yearmonth(date):T', title='Month'),
-            y=alt.Y('count():Q', title='Deals'),
-            color=alt.Color('city:N', title='City', legend=alt.Legend(columns=2)),
-            tooltip=[
-                alt.Tooltip('yearmonth(date):T', title='Month'),
-                alt.Tooltip('city:N', title='City'),
-                alt.Tooltip('count():Q', title='Deals')
-            ]
-        )
-        .properties(height=340, title='Monthly deals by city (Top 8)')
-    )
-
-    st.altair_chart(stacked, use_container_width=True)
