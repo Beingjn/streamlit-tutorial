@@ -34,7 +34,7 @@ st.sidebar.markdown(
 st.sidebar.divider()
 st.sidebar.subheader("Why use secrets for a public sheet?")
 st.sidebar.write(
-    "It's a good practice to put the URL in `secrets` to keeps it out of your code. The same setup scales when real credentials enter the picture."
+    "It's a good practice to put the URL in `secrets` to keeps it out of your code. The same setup is essential when real credentials enter the picture."
 )
 
 
@@ -43,7 +43,7 @@ st.markdown(
     ### What are Secrets?
     - Secrets are key–value settings your app reads at runtime via `st.secrets`.
     - They live outside your code (local: `.streamlit/secrets.toml`; Cloud: *Settings → Advanced → Secrets*).
-    - Same code works locally and on Cloud; no extra imports or branching.
+    - Same code works locally and on Cloud.
 
     **Examples of things to keep in secrets**
     - A public Google Sheet URL (this tutorial)
@@ -74,20 +74,15 @@ st.markdown(
     db_user  = st.secrets["connections"]["postgres"]["username"]
     stripe   = st.secrets["api"]["stripe_key"]
     ```
-
-    ### `st.connection`: How we connect data in this example
-    `st.connection(name, type=...)` creates a reusable connection object that reads settings from `secrets.toml` 
-    and provides simple methods like `.query(...)` or `.read(...)`. The `name` maps to a `[connections.<name>]` block in secrets, 
-    keeping credentials and URLs out of source code.\n
-    Detailed information: https://docs.streamlit.io/develop/api-reference/connections/st.connection
     """
 )
 
 st.divider()
 
 st.subheader("Local setup")
+st.write("Secrets lives locally in .streamlit/secrets.toml")
 st.code(
-    """.streamlit/secrets.toml  (do not commit this file)
+    """
 [connections.gsheets]
 # Share link with "Anyone with the link"
 spreadsheet = "https://docs.google.com/spreadsheets/d/XXXXXXXXXXXXXXXXXXXXXXXXXXXX/edit#gid=0" """,
@@ -121,6 +116,16 @@ st.markdown("""On Streamlit Community Cloud, secrets live with your app.
 You can update secrets anytime; the next run picks up the changes.
 """)
 st.caption("Community Cloud will be covered in a futrue tutorial.")
+
+st.divider()
+st.markdown(
+    """
+    ### `st.connection`: How we connect data in this example
+    `st.connection(name, type=...)` creates a reusable connection object that reads settings from `secrets.toml` 
+    and provides simple methods like `.query(...)` or `.read(...)`. \n
+    Detailed information: https://docs.streamlit.io/develop/api-reference/connections/st.connection
+    """
+)
 
 st.divider()
 
@@ -161,6 +166,10 @@ st.download_button("Download as CSV", df.to_csv(index=False), "sheet_data.csv", 
 st.write("Mininal pattern:")
 st.code(
     """
+    import streamlit as st
+    import pandas as pd
+    from streamlit_gsheets import GSheetsConnection
+
     conn = st.connection("gsheets", type=GSheetsConnection)
     df = conn.read()
     st.dataframe(df)
