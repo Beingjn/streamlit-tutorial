@@ -11,7 +11,6 @@ import streamlit as st
 
 intro = st.Page("pages/1_intro_to_Filters.py", title="Intro to Filters")
 form  = st.Page("pages/2_form_based_filters.py", title="Form-Based Filters")
-patterns = st.Page("pages/3_filter_placement_patterns.py", title="Filter Placement Patterns")
 
-st.navigation([intro, form, patterns]).run()
+st.navigation([intro, form]).run()
 

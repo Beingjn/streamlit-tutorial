@@ -23,50 +23,23 @@ st.title("Intro to Filters in Streamlit")
 st.markdown(
     """
 This app shows how to add simple filters and use one boolean mask to update
-multiple outputs at once. The example keeps things straightforward so you can copy/paste
-the pattern into your own apps.
+multiple outputs at once.
 """
 )
 
 # How the filter is achieved
-st.header("1) How the filter is achieved")
+st.header("1) How filtering is achieved")
 st.markdown(
     """
 - Widgets in the sidebar collect the user's choices (category, date range, value range).
 - On each change, Streamlit re-runs the script from top to bottom.
 - We build one boolean mask based on the widget values.
-- That mask filters the DataFrame once, and we reuse the filtered data for a table and a chart.
+- That mask filters the Dataframe, and we the filtered data for visualizations.
 """
-)
-
-# Structure of this example filter
-st.header("2) Structure of this example filter")
-st.markdown(
-    """
-Below is the conceptual pattern. We gather widget values, build a mask step-by-step,
-and apply it a single time. This keeps the code readable and avoids duplicating logic.
-"""
-)
-
-st.code(
-    """
-# 1) Read widget values (e.g., selected categories, date range, value range)
-# 2) Start with a mask that is True for every row
-mask = pd.Series(True, index=df.index)
-
-# 3) Narrow the mask step-by-step
-mask &= df["category"].isin(selected_cats)
-mask &= df["date"].between(start_date, end_date)
-mask &= df["value"].between(low, high)
-
-# 4) Apply once, reuse everywhere
-filtered = df.loc[mask]
-    """,
-    language="python",
 )
 
 # Example: plot + table with filters
-st.header("3) Example: plot + table with filters")
+st.header("2) Example")
 
 st.markdown(
     """
@@ -89,14 +62,14 @@ selected_cats = st.sidebar.multiselect(
 min_d, max_d = df["date"].min().date(), df["date"].max().date()
 date_range = st.sidebar.date_input(
     "Date range",
-    (min_d, max_d),                        # tuple means a range picker
+    (min_d, max_d),
     min_value=min_d,
     max_value=max_d,
     key="date_rng",
 )
 
 vmin, vmax = float(df["value"].min()), float(df["value"].max())
-low_high = st.sidebar.slider(
+low, high = st.sidebar.slider(
     "Value range",
     min_value=float(vmin),
     max_value=float(vmax),
@@ -107,11 +80,11 @@ low_high = st.sidebar.slider(
 # Build the mask
 mask = pd.Series(True, index=df.index)
 
-# Category filter (if the user clears everything, this will naturally produce an empty result)
+# Category filter
 if selected_cats:
     mask &= df["category"].isin(selected_cats)
 
-# Date filter (support both a single date or a start/end tuple)
+# Date filter
 gf = st.session_state.get("global_filters")
 if isinstance(date_range, tuple):
     start_date, end_date = date_range
@@ -122,7 +95,6 @@ end_ts = pd.to_datetime(end_date)
 mask &= df["date"].between(start_ts, end_ts)
 
 # Numeric range filter
-low, high = low_high
 mask &= df["value"].between(float(low), float(high))
 
 filtered = df.loc[mask].copy()
@@ -153,7 +125,94 @@ with c2:
             color=alt.Color("category:N", title="Category"),
             tooltip=["date:T", "category:N", "value:Q"],
         )
-        .interactive()
     )
     st.altair_chart(chart, use_container_width=True)
+
+# Structure of this example filter
+st.header("3) Structure of this example filter")
+st.markdown(
+    """
+Below is the pattern of this filter. We gather widget values, build a mask step-by-step,
+and apply it.  
+First, we have input widgets to take user input. Here are the widgets used in this example.  
+For more widgts, check Streamlit documentation: https://docs.streamlit.io/develop/api-reference/widgets
+"""
+)
+st.code(
+    """
+# 1) Widgets for inputing values
+# Category selection widget
+selected_cats = st.sidebar.multiselect(
+    "Category",
+    options=all_categories,
+    default=all_categories,                # start with everything selected
+    key="cats",
+)
+
+# Date input widget
+min_d, max_d = df["date"].min().date(), df["date"].max().date()
+start_date, end_date = st.sidebar.date_input(
+    "Date range",
+    (min_d, max_d),
+    min_value=min_d,
+    max_value=max_d,
+    key="date_rng",
+)
+
+# Value slider widget
+vmin, vmax = float(df["value"].min()), float(df["value"].max())
+low, high = st.sidebar.slider(
+    "Value range",
+    min_value=float(vmin),
+    max_value=float(vmax),
+    value=(float(vmin), float(vmax)),
+    key="val_rng",
+)
+    """,
+    language="python",
+)
+
+st.markdown(
+    """
+Then, we bulid filtered mask and apply it:
+"""
+)
+st.code(
+    """
+# 2) Start with a mask that is True for every row
+mask = pd.Series(True, index=df.index)
+
+# 3) Narrow the mask step-by-step
+mask &= df["category"].isin(selected_cats)
+mask &= df["date"].between(start_date, end_date)
+mask &= df["value"].between(low, high)
+
+# 4) Apply once, reuse everywhere
+filtered = df.loc[mask]
+    """,
+    language="python",
+)
+
+st.markdown(
+    """
+We can now use the filtered dataframe for visualizations and further use.
+"""
+)
+st.code(
+    """
+# Line chart used in this example
+chart = (
+    alt.Chart(filtered)
+    .mark_line()
+    .encode(
+        x=alt.X("date:T", title="Date"),
+        y=alt.Y("value:Q", title="Value"),
+        color=alt.Color("category:N", title="Category"),
+        tooltip=["date:T", "category:N", "value:Q"],
+    )
+)
+st.altair_chart(chart, use_container_width=True)
+    """,
+    language="python",
+)
 
