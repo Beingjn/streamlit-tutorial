@@ -34,7 +34,7 @@ st.markdown(
 - Widgets in the sidebar collect the user's choices (category, date range, value range).
 - On each change, Streamlit re-runs the script from top to bottom.
 - We build one boolean mask based on the widget values.
-- That mask filters the Dataframe, and we the filtered data for visualizations.
+- That mask filters the Dataframe, and we use the filtered data for visualizations.
 """
 )
 

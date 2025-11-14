@@ -24,7 +24,8 @@ st.markdown(
     """
 This part focuses on form-based filters. Unlike widgets which re-run the script
 on every change, a form batches changes and only applies them when you click Apply.
-That’s useful when filtering large datasets or when each change would trigger expensive work.
+That’s useful when filtering large datasets or when each change would trigger expensive work.  
+`st.form` in Streamlit docs: https://docs.streamlit.io/develop/concepts/architecture/forms
 """
 )
 
@@ -45,11 +46,11 @@ st.markdown(
 We briefly discussed Session State in Key Concepts, feel free to check it again.  
 Session State in Streamlit docs: https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state
     
-What it is: Session State is Streamlit’s small, per-user memory. Your script reruns top-to-bottom on every interaction; 
+What it is: Session State is Streamlit’s small, per-user memory. Your script reruns top-to-bottom on every interaction. 
 Session State keeps chosen values (like selected dates or “Apply/Reset” choices) alive across those reruns.
 
 Why here: forms batch changes, nothing updates until Apply. Keep the “applied” values in
-Session State; charts read from that until you overwrite it.
+Session State, and charts read from that until you overwrite it.
 """
 )
 
@@ -158,7 +159,6 @@ with c2:
             color=alt.Color("category:N", title="Category"),
             tooltip=["date:T", "category:N", "value:Q"],
         )
-        .interactive()
     )
     st.altair_chart(chart, use_container_width=True)
 
