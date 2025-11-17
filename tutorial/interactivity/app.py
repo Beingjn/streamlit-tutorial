@@ -7,6 +7,15 @@ from streamlit_gsheets import GSheetsConnection
 
 st.set_page_config(page_title="Interactivity & Linked Charts", layout="wide")
 st.title("Interactivity & Linked Charts")
+
+st.markdown(
+    """
+    This app shows examples of interactive charts in Altair, including brush-linked views,
+    legend-based filtering, and page-wide shared state between charts.  
+    For more examples of interactive charts, please check out the Interactive Charts section under Altair Example Gallery: https://altair-viz.github.io/gallery/index.html
+    """
+)
+
          
 CATEGORY = "city"                                  
 METRIC = st.sidebar.selectbox("Metric", ["sale_price", "profit"], index=0)
@@ -52,15 +61,14 @@ METRIC_LABEL = METRIC.replace("_", " ").title()
 AGG_LABEL = AGG.title()
 CAT_LABEL = CATEGORY.replace("_", " ").title()
 
-st.write(f"{df_top_cities.columns}")
 st.subheader("Data preview")
 st.caption(
     f"This app uses the same real estate dataset, restricted to the top {TOP_N_CITIES} cities by record count."
 )
 st.dataframe(df_top_cities.head(20), use_container_width=True)
 
-# 1) Brush-linked line + bar (horizontal concat with `|`)
-st.header("1) Brush-linked line + bar (using `|`) ")
+# 1) Linked line + bar horizontal concat
+st.header("1) Linked line + bar")
 st.markdown(
     f"""
     **Goal:** Use a brush on the time-vs-{METRIC_LABEL.lower()} line to filter the bar chart.
@@ -121,8 +129,8 @@ st.altair_chart((lines1 | bars1).resolve_scale(color="independent"), use_contain
     language="python",
 )
 
-# 2) Click-linked bars ↔ line (vertical concat with `&`)
-st.header("2) Click-linked bars ↔ line (using `&`)")
+# 2) Cross filltering bar + line vertical concat
+st.header("2) Cross filltering bar + line")
 st.markdown(
     """
     **Altair composition operators:**
@@ -138,9 +146,9 @@ st.markdown(
 )
 
 click_cat = alt.selection_point(name="cat_click", fields=["category"], on="click", clear="dblclick")
-brush3 = alt.selection_interval(name="brush3")
+brush2 = alt.selection_interval(name="brush2")
 
-bars3 = (
+bars2 = (
     alt.Chart(df_monthly, title=f"{AGG_LABEL} {METRIC_LABEL} by {CAT_LABEL} — click to filter")
     .mark_bar()
     .encode(
@@ -150,11 +158,11 @@ bars3 = (
         tooltip=["category:N", alt.Tooltip("mean(value):Q", title=f"{AGG_LABEL} {METRIC_LABEL}")],
     )
     .add_params(click_cat)
-    .transform_filter(brush3)  # brush on the line constrains these bars
+    .transform_filter(brush2)  # brush on the line to these bars
     .properties(height=160)
 )
 
-lines3 = (
+lines2 = (
     alt.Chart(df_monthly, title=f"{AGG_LABEL} {METRIC_LABEL} over Time — brushed; filtered by bar click")
     .mark_line(point=True)
     .encode(
@@ -163,40 +171,40 @@ lines3 = (
         color="category:N",
         tooltip=[alt.Tooltip("date:T", title="Month"), "category:N", alt.Tooltip("value:Q", title=f"{AGG_LABEL} {METRIC_LABEL}")],
     )
-    .add_params(brush3)
-    .transform_filter(click_cat)
+    .add_params(brush2) 
+    .transform_filter(click_cat)    # click on the bars to filter the lines
 )
 
-st.altair_chart((bars3 & lines3).resolve_scale(color="independent"), use_container_width=True)
+st.altair_chart((bars2 & lines2).resolve_scale(color="independent"), use_container_width=True)
 
 st.code(
     f'''
 click_cat = alt.selection_point(name="cat_click", fields=["category"], on="click", clear="dblclick")
-brush3 = alt.selection_interval(name="brush3")
+brush2 = alt.selection_interval(name="brush2")
 
-bars3 = (
+bars2 = (
     alt.Chart(df_monthly, title=f"{AGG_LABEL} {METRIC_LABEL} by {CAT_LABEL} — click to filter")
     .mark_bar()
     .encode(...)
     .add_params(click_cat)
-    .transform_filter(brush3)  # brush on the line constrains these bars
+    .transform_filter(brush2)  # brush on the line constrains these bars
     .properties(height=160)
 )
 
-lines3 = (
+lines2 = (
     alt.Chart(df_monthly, title=f"{AGG_LABEL} {METRIC_LABEL} over Time — brushed; filtered by bar click")
     .mark_line(point=True)
     .encode(...)
-    .add_params(brush3)
+    .add_params(brush2)
     .transform_filter(click_cat)
 )
 
-st.altair_chart((bars3 & lines3).resolve_scale(color="independent"), use_container_width=True)
+st.altair_chart((bars2 & lines2).resolve_scale(color="independent"), use_container_width=True)
 ''',
     language="python",
 )
 
-# 2) Legend-click filtering
+# 3) Legend-click filtering
 st.header("3) Legend filtering")
 st.markdown(
     "Click legend entries to filter categories without altering the chart layout."
@@ -204,7 +212,7 @@ st.markdown(
 
 legend = alt.selection_point(name="legend", fields=["category"], bind="legend")
 
-lines2 = (
+lines3 = (
     alt.Chart(df_monthly, title=f"{AGG_LABEL} {METRIC_LABEL} over Time by {CAT_LABEL} — legend click to filter")
     .mark_line(point=True)
     .encode(
@@ -217,13 +225,13 @@ lines2 = (
     .transform_filter(legend)
 )
 
-st.altair_chart(lines2, use_container_width=True)
+st.altair_chart(lines3, use_container_width=True)
 
 st.code(
     f'''
 legend = alt.selection_point(name="legend", fields=["category"], bind="legend")
 
-lines2 = (
+lines3 = (
     alt.Chart(df_monthly, title=f"{AGG_LABEL} {METRIC_LABEL} over Time by {CAT_LABEL} — legend click to filter")
     .mark_line(point=True)
     .encode(...)
@@ -231,7 +239,7 @@ lines2 = (
     .transform_filter(legend)
 )
 
-st.altair_chart(lines2, use_container_width=True)
+st.altair_chart(lines3, use_container_width=True)
 ''',
     language="python",
 )
@@ -241,14 +249,14 @@ st.altair_chart(lines2, use_container_width=True)
 st.header("4) Page-wide linking via shared state")
 st.markdown(
     f"""
-    In this section, we **do not** use Altair's concat operators. Instead, we:
+    In this section, we do not use Altair's concat operators. Instead, we:
 
     1. Create a top bar chart of **{CAT_LABEL}** and expose a named selection param.
     2. Capture that selection in Streamlit (`on_select="rerun"`).
     3. Recompute a filtered DataFrame in Python.
-    4. Render follow-up charts **elsewhere on the page**, all filtered by the same state.
+    4. Render follow-up charts elsewhere on the page, all filtered by the same state.
 
-    **Why this pattern?** It keeps charts **connected** while allowing rich text and layout in between, ideal for tutorials and storytelling.
+    This pattern keeps charts connected while allowing content in between.
     """
 )
 
@@ -333,4 +341,19 @@ st.altair_chart(hist4, use_container_width=True)
 """,
 language="python",
 )
+
+legend_sel = alt.selection_point(fields=["category"], bind="legend")
+
+legend_chart = (
+    alt.Chart(df_monthly)
+    .mark_line(point=True)
+    .encode(
+        x="month:T",
+        y=f"{AGG}({METRIC}):Q",
+        color="category:N",
+        opacity=alt.condition(legend_sel, alt.value(1), alt.value(0.1)),
+    )
+    .add_params(legend_sel)
+)
+
 
