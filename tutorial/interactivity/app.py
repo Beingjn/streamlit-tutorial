@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
-from pathlib import Path
 from streamlit_gsheets import GSheetsConnection
 
 st.set_page_config(page_title="Interactivity & Linked Charts", layout="wide")
